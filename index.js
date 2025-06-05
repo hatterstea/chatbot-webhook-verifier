@@ -1,24 +1,32 @@
 const express = require('express');
 const app = express();
 
-const YOUR_SECRET_TOKEN = 'secretvalue'; // the only creative choice that matters right now
+const token = 'secretvalue';
 
 app.get('/', (req, res) => {
-  const { challenge, token } = req.query;
+    const challenge = req.query.challenge;
+    const requestToken = req.query.token;
 
-  if (!challenge || !token) {
-    return res.status(400).send('Missing challenge or token');
-  }
+    if (!challenge || !requestToken) {
+        res.status(400).send('Missing challenge or token');
+        return;
+    }
 
-  if (token !== YOUR_SECRET_TOKEN) {
-    return res.status(401).send('Invalid token');
-  }
+    if (requestToken !== token) {
+        res.status(401).send('Unauthorized');
+        return;
+    }
 
-  res.set('Content-Type', 'text/plain');
-  res.send(challenge);
+    res.set('Content-Type', 'text/plain');
+    res.status(200).send(challenge);
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Webhook verifier listening on port ${port}`);
+// Catch-all for empty path (no trailing slash)
+app.get('', (req, res) => {
+    res.redirect('/');
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`✅ Server is running on port ${PORT}`);
 });
