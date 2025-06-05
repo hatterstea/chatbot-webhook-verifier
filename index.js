@@ -1,23 +1,24 @@
-const express = require("express");
+const express = require('express');
 const app = express();
 
-const VERIFICATION_TOKEN = process.env.VERIFICATION_TOKEN;
+const YOUR_SECRET_TOKEN = 'secretvalue'; // the only creative choice that matters right now
 
-app.get("/", (req, res) => {
-  const { token, challenge } = req.query;
+app.get('/', (req, res) => {
+  const { challenge, token } = req.query;
 
-  if (!token || !challenge) {
-    return res.status(400).send("Missing parameters.");
+  if (!challenge || !token) {
+    return res.status(400).send('Missing challenge or token');
   }
 
-  if (token !== VERIFICATION_TOKEN) {
-    return res.status(401).send("Invalid token.");
+  if (token !== YOUR_SECRET_TOKEN) {
+    return res.status(401).send('Invalid token');
   }
 
-  res.set("Content-Type", "text/plain");
-  return res.send(challenge);
+  res.set('Content-Type', 'text/plain');
+  res.send(challenge);
 });
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log("Chatbot webhook verifier listening.");
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Webhook verifier listening on port ${port}`);
 });
