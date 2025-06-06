@@ -1,32 +1,44 @@
 const express = require('express');
+const bodyParser = require('body-parser');
+
 const app = express();
+const port = process.env.PORT || 3000;
 
-const token = 'secretvalue';
+const secretToken = 'secretvalue';
 
+app.use(bodyParser.json());
+
+// GET request for webhook verification
 app.get('/', (req, res) => {
-    const challenge = req.query.challenge;
-    const requestToken = req.query.token;
+  const { token, challenge } = req.query;
 
-    if (!challenge || !requestToken) {
-        res.status(400).send('Missing challenge or token');
-        return;
-    }
+  if (token !== secretToken || !challenge) {
+    return res.status(401).send('Unauthorized');
+  }
 
-    if (requestToken !== token) {
-        res.status(401).send('Unauthorized');
-        return;
-    }
-
-    res.set('Content-Type', 'text/plain');
-    res.status(200).send(challenge);
+  return res.send(challenge); // Echo back the challenge string
 });
 
-// Catch-all for empty path (no trailing slash)
-app.get('', (req, res) => {
-    res.redirect('/');
+// POST request for real chat events
+app.post('/', (req, res) => {
+  console.log('Incoming webhook:', req.body);
+
+  const response = {
+    attributes: {
+      name: 'Ally',
+      mood: 'curious'
+    },
+    responses: [
+      {
+        type: 'text',
+        message: 'Message received successfully. :)'
+      }
+    ]
+  };
+
+  res.json(response);
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`✅ Server is running on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`Webhook server listening at http://localhost:${port}`);
 });
